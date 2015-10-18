@@ -3,14 +3,18 @@ extern "C" {
 #endif
 
 typedef struct {
+    float theta;
+    float radius;
+    int note;
+} moon_circle;
+
+typedef struct {
     sp_data *sp;
     plumber_data pd;
     int sr;
-    float theta;
-    float ltheta;
-    float trig;
-    int init;
-    float time;
+    moon_circle moon[4];
+    float speed;
+    int notes[4];
 } moon_base;
 
 int moon_init(moon_base *mb);

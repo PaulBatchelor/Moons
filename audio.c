@@ -6,6 +6,7 @@
 #include "audio.h"
 
 typedef struct {
+    moon_circle *moon;
     sp_ftbl *ft;
     sp_fosc *osc;
     sp_tenv *env;
@@ -14,14 +15,76 @@ typedef struct {
     float dur;
 } orbit_d;
 
+static int orbit_create(moon_base *mb, orbit_d **orbptr, int n)
+{
+    *orbptr = malloc(sizeof(orbit_d) * n);
+    int i;
+    orbit_d *orb = *orbptr;
+    for(i = 0; i < n; i++) {
+        sp_ftbl_create(mb->sp, &orb[i].ft, 4096);
+        sp_fosc_create(&orb[i].osc);
+        sp_metro_create(&orb[i].met);
+        sp_tenv_create(&orb[i].env);
+    }
+    return 0;
+}
+
+static int orbit_destroy(moon_base *mb, orbit_d **orbptr)
+{
+    orbit_d *orb = *orbptr;
+    sp_fosc_destroy(&orb->osc);
+    sp_ftbl_destroy(&orb->ft);
+    sp_metro_destroy(&orb->met);
+    sp_tenv_destroy(&orb->env);
+    free(orb);
+
+    return 0;
+}
+
+static int orbit_init(moon_base *mb, orbit_d *orb, moon_circle *moon)
+{
+    sp_gen_sine(mb->sp, orb->ft);
+    sp_fosc_init(mb->sp, orb->osc, orb->ft);
+    orb->osc->freq = sp_midi2cps(mb->notes[moon->note]);
+    orb->osc->amp = 0.2;
+    orb->osc->indx = 1.2;
+    sp_metro_init(mb->sp, orb->met);
+    orb->met->freq = 0.1;
+    sp_tenv_init(mb->sp, orb->env);
+    orb->env->atk = 0.007;
+    orb->env->rel = 0.4;
+    orb->env->hold = 0.01;
+    orb->time = 0;
+    orb->dur = mb->speed * moon->radius;
+    orb->moon = moon;
+
+    return 0;
+}
+
+static SPFLOAT orbit_compute(moon_base *mb, orbit_d *orb)
+{
+    SPFLOAT osc = 0, met = 0, env = 0;
+    if(floor(orb->time) == 0) {
+        met = 1;
+    }
+
+    sp_tenv_compute(mb->sp, orb->env, &met, &env);
+    sp_fosc_compute(mb->sp, orb->osc, NULL, &osc);
+   
+    orb->moon->theta = ((float) orb->time / (orb->dur * mb->sp->sr)) * 2 * M_PI;
+    orb->time++;
+    orb->time = fmod(orb->time, orb->dur * mb->sp->sr);
+   
+    return osc * env;
+}
+
 static int orbits(sporth_stack *stack, void *ud) 
 {
     plumber_data *pd = ud;
-    SPFLOAT step, base;
-    SPFLOAT osc = 0, met = 0, env = 0;
+    SPFLOAT out = 0;
     sporth_func_d *fd;
     orbit_d *od;
-    moon_base *md = pd->ud;
+    moon_base *mb = pd->ud;
 
     switch(pd->mode) {
         case PLUMBER_CREATE:
@@ -31,11 +94,7 @@ static int orbits(sporth_stack *stack, void *ud)
 #endif
 
             fd = pd->last->ud;
-            od = malloc(sizeof(orbit_d));
-            sp_ftbl_create(pd->sp, &od->ft, 4096);
-            sp_fosc_create(&od->osc);
-            sp_metro_create(&od->met);
-            sp_tenv_create(&od->env);
+            orbit_create(mb, &od, 4);
 
             fd->ud = od; 
 
@@ -54,18 +113,10 @@ static int orbits(sporth_stack *stack, void *ud)
 
             fd = pd->last->ud;
             od  = fd->ud;
-            sp_gen_sine(pd->sp, od->ft);
-            sp_fosc_init(pd->sp, od->osc, od->ft);
-            od->osc->freq = sp_midi2cps(69);
-            od->osc->amp = 0.5;
-            sp_metro_init(pd->sp, od->met);
-            od->met->freq = 0.1;
-            sp_tenv_init(pd->sp, od->env);
-            od->env->atk = 0.005;
-            od->env->rel = 0.1;
-            od->env->hold = 0.01;
-            od->time = 0;
-            od->dur = 5;
+            orbit_init(mb, &od[0], &mb->moon[0]);
+            orbit_init(mb, &od[1], &mb->moon[1]);
+            orbit_init(mb, &od[2], &mb->moon[2]);
+            orbit_init(mb, &od[3], &mb->moon[3]);
             sporth_stack_push_float(stack, 0);
 
             break;
@@ -80,18 +131,12 @@ static int orbits(sporth_stack *stack, void *ud)
 
             fd = pd->last->ud;
             od  = fd->ud;
+            out = orbit_compute(mb, &od[0]);
+            out += orbit_compute(mb, &od[1]);
+            out += orbit_compute(mb, &od[2]);
+            out += orbit_compute(mb, &od[3]);
 
-            if(od->time == 0) {
-                met = 1;
-            }
-
-            sp_tenv_compute(pd->sp, od->env, &met, &env);
-            sp_fosc_compute(pd->sp, od->osc, NULL, &osc);
-            sporth_stack_push_float(stack, osc * env);
-           
-            md->theta = ((float) od->time / (od->dur * pd->sp->sr)) * 2 * M_PI;
-            od->time++;
-            od->time = fmod(od->time, od->dur * pd->sp->sr);
+            sporth_stack_push_float(stack, out);
             break;
 
         case PLUMBER_DESTROY:
@@ -100,13 +145,7 @@ static int orbits(sporth_stack *stack, void *ud)
 #endif
             fd = pd->last->ud;
             od = fd->ud;
-
-            sp_fosc_destroy(&od->osc);
-            sp_ftbl_destroy(&od->ft);
-            sp_metro_destroy(&od->met);
-            sp_tenv_destroy(&od->env);
-            free(od);
-
+            orbit_destroy(mb, &od);
             break;
 
         default:
@@ -116,38 +155,38 @@ static int orbits(sporth_stack *stack, void *ud)
     return PLUMBER_OK;
 }
 
-int moon_sound_init(moon_base *md) 
+int moon_sound_init(moon_base *mb) 
 {
-    sp_createn(&md->sp, 2);
-    md->sp->sr = md->sr;
-    plumber_register(&md->pd);
-    plumber_init(&md->pd);
-    md->pd.f[0] = orbits;
-    md->pd.sp = md->sp;
-    md->pd.ud = md;
+    sp_createn(&mb->sp, 2);
+    mb->sp->sr = mb->sr;
+    plumber_register(&mb->pd);
+    plumber_init(&mb->pd);
+    mb->pd.f[0] = orbits;
+    mb->pd.sp = mb->sp;
+    mb->pd.ud = mb;
     char *str = 
-        "0 f dup dup 0.97 10000 revsc "
+        "0 f dup 0.5 1.1 delay 1000 butlp 0.2 * + dup dup 0.97 10000 revsc "
         "0.2 * swap 0.2 * "
         "rot dup rot + rot rot +"  
         ;
 
-    plumber_parse_string(&md->pd, str);
-    plumber_compute(&md->pd, PLUMBER_INIT);
+    plumber_parse_string(&mb->pd, str);
+    plumber_compute(&mb->pd, PLUMBER_INIT);
 
     return 0;
 }
 
-int moon_sound_compute(moon_base *md)
+int moon_sound_compute(moon_base *mb)
 {
-    plumber_compute(&md->pd, PLUMBER_COMPUTE);
-    md->sp->out[0] = sporth_stack_pop_float(&md->pd.sporth.stack);
-    md->sp->out[1] = sporth_stack_pop_float(&md->pd.sporth.stack);
+    plumber_compute(&mb->pd, PLUMBER_COMPUTE);
+    mb->sp->out[0] = sporth_stack_pop_float(&mb->pd.sporth.stack);
+    mb->sp->out[1] = sporth_stack_pop_float(&mb->pd.sporth.stack);
     return 0;
 }
 
-int moon_sound_destroy(moon_base *md)
+int moon_sound_destroy(moon_base *mb)
 {
-    plumber_clean(&md->pd);
-    sp_destroy(&md->sp);
+    plumber_clean(&mb->pd);
+    sp_destroy(&mb->sp);
     return 0;
 }

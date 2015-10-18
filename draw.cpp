@@ -120,40 +120,57 @@ void idleFunc( )
     glutPostRedisplay( );
 }
 
-
-int moon_draw(moon_base *mb)
+static int orbit_draw(moon_circle *moon) 
 {
     int32_t i, npoints = 256;
     float incr = 2 * M_PI / (npoints - 1);
-    float theta = mb->theta;
-    /* clear the color and depth buffers */
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    float theta = moon->theta;
     
-    /* line width */
     glLineWidth( 2.0 );
-    /* define a starting point */
-    GLfloat x = -5;
-    /* increment */
-    GLfloat xinc = 1;
     
-    /* start primitive */
-    hex2float(74, 221, 237);
+    switch(moon->note)  {
+        case 0:
+            hex2float(74, 221, 237);
+            break;
+        case 1:
+            hex2float(242, 189, 205);
+            break;
+        case 2:
+            hex2float(152, 255, 152);
+            break;
+        case 3:
+            hex2float(255, 250, 152);
+            break;
+        default:
+            hex2float(74, 221, 237);
+            break;
+    }
 
     glBegin(GL_LINE_STRIP);
         for(i = 0; i < npoints; i++) {
-            glVertex2f(cos(i * incr), sin(i * incr));
+            glVertex2f(moon->radius * cos(i * incr), moon->radius * sin(i * incr));
         }
     glEnd();
     
     glBegin(GL_TRIANGLE_FAN);
         for(i = 0; i < npoints; i++) {
-            glVertex2f(0.07 * cos(i * incr) + cos(theta), 0.07 * sin(i * incr) + sin(theta));
+            glVertex2f(0.07 * cos(i * incr) + moon->radius * cos(theta), 
+                    0.07 * sin(i * incr) + moon->radius * sin(theta));
         }
     glEnd();
+}
 
-    /* flush! */
+int moon_draw(moon_base *mb)
+{
+    /* clear the color and depth buffers */
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+   
+    orbit_draw(&mb->moon[0]); 
+    orbit_draw(&mb->moon[1]); 
+    orbit_draw(&mb->moon[2]); 
+    orbit_draw(&mb->moon[3]); 
+
     glFlush( );
-    /* swap the double buffer */
     glutSwapBuffers( );
     return 0;
 }

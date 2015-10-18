@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include "soundpipe.h"
 #include "sporth.h"
 #include "base.h"
@@ -9,6 +10,8 @@ typedef struct {
     sp_fosc *osc;
     sp_tenv *env;
     sp_metro *met;
+    float time;
+    float dur;
 } orbit_d;
 
 static int orbits(sporth_stack *stack, void *ud) 
@@ -61,6 +64,8 @@ static int orbits(sporth_stack *stack, void *ud)
             od->env->atk = 0.005;
             od->env->rel = 0.1;
             od->env->hold = 0.01;
+            od->time = 0;
+            od->dur = 5;
             sporth_stack_push_float(stack, 0);
 
             break;
@@ -72,13 +77,21 @@ static int orbits(sporth_stack *stack, void *ud)
                 stack->error++;
                 return PLUMBER_NOTOK;
             }
+
             fd = pd->last->ud;
             od  = fd->ud;
-            sp_metro_compute(pd->sp, od->met, NULL, &met);
-            sp_tenv_compute(pd->sp, od->env, &md->trig, &env);
+
+            if(od->time == 0) {
+                met = 1;
+            }
+
+            sp_tenv_compute(pd->sp, od->env, &met, &env);
             sp_fosc_compute(pd->sp, od->osc, NULL, &osc);
             sporth_stack_push_float(stack, osc * env);
-
+           
+            md->theta = ((float) od->time / (od->dur * pd->sp->sr)) * 2 * M_PI;
+            od->time++;
+            od->time = fmod(od->time, od->dur * pd->sp->sr);
             break;
 
         case PLUMBER_DESTROY:
@@ -114,8 +127,8 @@ int moon_sound_init(moon_base *md)
     md->pd.ud = md;
     char *str = 
         "0 f dup dup 0.97 10000 revsc "
-        "0.3 * swap 0.3 * "
-        "rot dup rot + rot +"
+        "0.2 * swap 0.2 * "
+        "rot dup rot + rot rot +"  
         ;
 
     plumber_parse_string(&md->pd, str);

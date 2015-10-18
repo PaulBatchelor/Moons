@@ -10,6 +10,7 @@ typedef struct {
     float ltheta;
     float trig;
     int init;
+    float time;
 } moon_base;
 
 int moon_init(moon_base *mb);

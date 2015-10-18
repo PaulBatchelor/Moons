@@ -125,7 +125,7 @@ int moon_draw(moon_base *mb)
 {
     int32_t i, npoints = 256;
     float incr = 2 * M_PI / (npoints - 1);
-    float theta = 0;
+    float theta = mb->theta;
     /* clear the color and depth buffers */
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     
@@ -147,7 +147,7 @@ int moon_draw(moon_base *mb)
     
     glBegin(GL_TRIANGLE_FAN);
         for(i = 0; i < npoints; i++) {
-            glVertex2f(0.07 * cos(i * incr) + cos(mb->theta), 0.07 * sin(i * incr) + sin(mb->theta));
+            glVertex2f(0.07 * cos(i * incr) + cos(theta), 0.07 * sin(i * incr) + sin(theta));
         }
     glEnd();
 
@@ -155,20 +155,5 @@ int moon_draw(moon_base *mb)
     glFlush( );
     /* swap the double buffer */
     glutSwapBuffers( );
-    mb->ltheta = mb->theta;
-    mb->theta += 0.01;
-    mb->theta = fmod(mb->theta, 2 * M_PI);
-
-    if(mb->ltheta > mb->theta) {
-        mb->trig = 1;
-    } else {
-        mb->trig = 0;
-    }
-
-    if(mb->init == 1) {
-        mb->init = 0;
-        mb->trig = 1;
-    }
-    
     return 0;
 }

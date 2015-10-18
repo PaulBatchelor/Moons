@@ -42,6 +42,7 @@ int moon_init(moon_base *mb)
 {
     mb->theta = 0;
     mb->init = 1;
+    mb->time = 0;
     return 0;
 }
 
@@ -57,7 +58,7 @@ int callme( void * outputBuffer, void * inputBuffer, unsigned int numFrames,
     {
         moon_sound_compute(md);
         output[i] = md->sp->out[0];
-        output[i + 1] = md->sp->out[0];
+        output[i + 1] = md->sp->out[1];
     }
     
     return 0;

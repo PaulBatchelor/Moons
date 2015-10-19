@@ -6,7 +6,9 @@ CXXFLAGS=-D__MACOSX_CORE__ -c
 LIBS=-framework CoreAudio -framework CoreMIDI -framework CoreFoundation \
 	-framework IOKit -framework Carbon  -framework OpenGL \
 	-framework GLUT -framework Foundation \
-	-framework AppKit -lstdc++ -lm
+	-framework AppKit -lstdc++ -lm -L/usr/local/lib
+CXXFLAGS += -I/usr/local/include
+CFLAGS += -I/usr/local/include
 else
 CXX=g++
 CXXFLAGS=-D__UNIX_JACK__ -c

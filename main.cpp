@@ -2,10 +2,16 @@
 #include <stdlib.h>
 #include <iostream>
 
+#ifdef __MACOSX_CORE__
+#include <GLUT/glut.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <string.h>
+#endif
 
 #include "RtAudio.h"
 #include "draw.h"

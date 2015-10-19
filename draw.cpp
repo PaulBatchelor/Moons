@@ -130,7 +130,7 @@ static int orbit_draw(moon_circle *moon)
     float dash_Y1 = (moon->radius - 0.05) * sin(moon->itheta);
     float dash_Y2 = (moon->radius + 0.05) * sin(moon->itheta);
 
-    glLineWidth( 3.0 );
+    glLineWidth( 1.0 );
     
     switch(moon->note)  {
         case 0:

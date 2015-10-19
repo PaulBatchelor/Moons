@@ -40,26 +40,30 @@ RtAudio audio;
 
 int moon_init(moon_base *mb)
 {
+    mb->speed = 10;
+
     mb->notes[0] = 62;
     mb->notes[1] = 64;
     mb->notes[2] = 69;
     mb->notes[3] = 73;
 
-    mb->speed = 10;
-
-    mb->moon[0].theta = 0;
+    mb->moon[0].theta = 0.5;
+    mb->moon[0].itheta = 0.5;
     mb->moon[0].radius = 1.024;
-    mb->moon[0].note = 0;
+    mb->moon[0].note = 2;
     
-    mb->moon[1].theta = 0;
+    mb->moon[1].theta = 4;
+    mb->moon[1].itheta = 4;
     mb->moon[1].radius = 1.765;
     mb->moon[1].note = 1;
     
-    mb->moon[2].theta = 0;
+    mb->moon[2].theta = 2;
+    mb->moon[2].itheta = 2;
     mb->moon[2].radius = 0.86;
-    mb->moon[2].note = 2;
+    mb->moon[2].note = 0;
     
     mb->moon[3].theta = 0;
+    mb->moon[3].itheta = 0;
     mb->moon[3].radius = 1.513;
     mb->moon[3].note = 3;
 

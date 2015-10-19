@@ -125,8 +125,12 @@ static int orbit_draw(moon_circle *moon)
     int32_t i, npoints = 256;
     float incr = 2 * M_PI / (npoints - 1);
     float theta = moon->theta;
-    
-    glLineWidth( 2.0 );
+    float dash_X1 = (moon->radius - 0.05) * cos(moon->itheta);
+    float dash_X2 = (moon->radius + 0.05) * cos(moon->itheta);
+    float dash_Y1 = (moon->radius - 0.05) * sin(moon->itheta);
+    float dash_Y2 = (moon->radius + 0.05) * sin(moon->itheta);
+
+    glLineWidth( 3.0 );
     
     switch(moon->note)  {
         case 0:
@@ -157,6 +161,11 @@ static int orbit_draw(moon_circle *moon)
             glVertex2f(0.07 * cos(i * incr) + moon->radius * cos(theta), 
                     0.07 * sin(i * incr) + moon->radius * sin(theta));
         }
+    glEnd();
+    
+    glBegin(GL_LINE_STRIP);
+            glVertex2f(dash_X1, dash_Y1);
+            glVertex2f(dash_X2, dash_Y2);
     glEnd();
 }
 

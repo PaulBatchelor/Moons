@@ -10,6 +10,7 @@ typedef struct {
     sp_ftbl *ft;
     sp_fosc *osc;
     sp_tenv *env;
+    sp_tenv *env_timbre;
     sp_metro *met;
     float time;
     float dur;
@@ -25,6 +26,7 @@ static int orbit_create(moon_base *mb, orbit_d **orbptr, int n)
         sp_fosc_create(&orb[i].osc);
         sp_metro_create(&orb[i].met);
         sp_tenv_create(&orb[i].env);
+        sp_tenv_create(&orb[i].env_timbre);
     }
     return 0;
 }
@@ -36,6 +38,7 @@ static int orbit_destroy(moon_base *mb, orbit_d **orbptr)
     sp_ftbl_destroy(&orb->ft);
     sp_metro_destroy(&orb->met);
     sp_tenv_destroy(&orb->env);
+    sp_tenv_destroy(&orb->env_timbre);
     free(orb);
 
     return 0;
@@ -44,16 +47,26 @@ static int orbit_destroy(moon_base *mb, orbit_d **orbptr)
 static int orbit_init(moon_base *mb, orbit_d *orb, moon_circle *moon)
 {
     sp_gen_sine(mb->sp, orb->ft);
+
     sp_fosc_init(mb->sp, orb->osc, orb->ft);
-    orb->osc->freq = sp_midi2cps(mb->notes[moon->note]);
-    orb->osc->amp = 0.2;
+    orb->osc->freq = sp_midi2cps(mb->notes[moon->note] - 0.005);
+    orb->osc->amp = 0.15;
     orb->osc->indx = 1.2;
+    orb->osc->mod = 7;
+
     sp_metro_init(mb->sp, orb->met);
     orb->met->freq = 0.1;
+
     sp_tenv_init(mb->sp, orb->env);
-    orb->env->atk = 0.007;
-    orb->env->rel = 0.4;
+    orb->env->atk = 0.02;
+    orb->env->rel = 1.7;
     orb->env->hold = 0.01;
+
+    sp_tenv_init(mb->sp, orb->env_timbre);
+    orb->env_timbre->atk = 0.02;
+    orb->env_timbre->rel = 0.2;
+    orb->env_timbre->hold = 0.01;
+
     orb->time = 0;
     orb->dur = mb->speed * moon->radius;
     orb->moon = moon;
@@ -63,15 +76,20 @@ static int orbit_init(moon_base *mb, orbit_d *orb, moon_circle *moon)
 
 static SPFLOAT orbit_compute(moon_base *mb, orbit_d *orb)
 {
-    SPFLOAT osc = 0, met = 0, env = 0;
+    SPFLOAT osc = 0, met = 0, env = 0, env_timbre = 0;
     if(floor(orb->time) == 0) {
         met = 1;
     }
 
     sp_tenv_compute(mb->sp, orb->env, &met, &env);
+    sp_tenv_compute(mb->sp, orb->env_timbre, &met, &env_timbre);
+
+    orb->osc->indx = 0.01 + env_timbre * 0.5;
     sp_fosc_compute(mb->sp, orb->osc, NULL, &osc);
    
-    orb->moon->theta = ((float) orb->time / (orb->dur * mb->sp->sr)) * 2 * M_PI;
+    orb->moon->theta = orb->moon->itheta + 
+        ((float) orb->time / (orb->dur * mb->sp->sr)) * 
+        2 * M_PI;
     orb->time++;
     orb->time = fmod(orb->time, orb->dur * mb->sp->sr);
    
@@ -166,7 +184,7 @@ int moon_sound_init(moon_base *mb)
     mb->pd.ud = mb;
     char *str = 
         "0 f dup 0.5 1.1 delay 1000 butlp 0.2 * + dup dup 0.97 10000 revsc "
-        "0.2 * swap 0.2 * "
+        "0.1 * swap 0.1 * "
         "rot dup rot + rot rot +"  
         ;
 

@@ -4,6 +4,7 @@ extern "C" {
 
 typedef struct {
     float theta;
+    float itheta;
     float radius;
     int note;
 } moon_circle;

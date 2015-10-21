@@ -80,7 +80,7 @@ static SPFLOAT orbit_compute(moon_base *mb, orbit_d *orb)
         met = 1;
     }
     
-    orb->osc->freq = sp_midi2cps(mb->notes[orb->moon->note]);
+    orb->osc->freq = sp_midi2cps(mb->scale->tbl[orb->moon->note]);
 
     sp_tenv_compute(mb->sp, orb->env, &met, &env);
     sp_tenv_compute(mb->sp, orb->env_timbre, &met, &env_timbre);
@@ -183,6 +183,8 @@ int moon_sound_init(moon_base *mb)
     mb->pd.sp = mb->sp;
     mb->pd.ud = mb;
     char *str = 
+        //"'scale' '62 64 66 69 71 74 76 78' gen_vals "
+        "'scale' '62 64 66 69 73' gen_vals "
         "0 f dup 0.5 1.1 delay 1000 butlp 0.2 * + dup dup 0.97 10000 revsc "
         "0.1 * swap 0.1 * "
         "rot dup rot + rot rot +"  
@@ -190,6 +192,8 @@ int moon_sound_init(moon_base *mb)
 
     plumber_parse_string(&mb->pd, str);
     plumber_compute(&mb->pd, PLUMBER_INIT);
+
+    plumber_ftmap_search(&mb->pd, "scale", &mb->scale);
 
     return 0;
 }

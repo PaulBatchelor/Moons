@@ -4,8 +4,6 @@ extern "C" {
 
 #define MAX_MOONS 8
 
-#define MAX_NOTES 8
-
 typedef struct {
     float theta;
     float itheta;
@@ -16,11 +14,11 @@ typedef struct {
 
 typedef struct {
     sp_data *sp;
+    sp_ftbl *scale;
     plumber_data pd;
     int sr;
     moon_circle moon[MAX_MOONS];
     float speed;
-    int notes[MAX_NOTES];
     int nmoons;
     int max_moons;
 } moon_base;

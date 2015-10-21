@@ -262,7 +262,7 @@ void initGfx()
     glutMouseFunc( mouseFunc );
     
     /* set clear color */
-    glClearColor( 13.0/255.0, 0, 20.0/255.0, 1 );
+    glClearColor( 0, 0, 0, 1 );
     /* enable color material */
     glEnable( GL_COLOR_MATERIAL );
     /* enable depth test */

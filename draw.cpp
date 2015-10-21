@@ -60,19 +60,31 @@ static int orbit_draw(moon_circle *moon)
     
     switch(moon->note)  {
         case 0:
-            hex2float(74, 221, 237);
+            hex2float(255, 255, 39);
             break;
         case 1:
-            hex2float(242, 189, 205);
+            hex2float(255, 0, 77);
             break;
         case 2:
-            hex2float(152, 255, 152);
+            hex2float(0, 231, 86);
             break;
         case 3:
-            hex2float(255, 250, 152);
+            hex2float(41, 173, 255);
+            break;
+        case 4:
+            hex2float(255, 163, 0);
+            break;
+        case 5:
+            hex2float(255, 119, 168);
+            break;
+        case 6:
+            hex2float(0, 135, 81);
+            break;
+        case 7:
+            hex2float(131, 118, 156);
             break;
         default:
-            hex2float(74, 221, 237);
+            hex2float(255, 255, 39);
             break;
     }
 

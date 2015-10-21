@@ -3,7 +3,8 @@ extern "C" {
 #endif
 
 #define MAX_MOONS 8
-#define MAX_NOTES 4
+
+#define MAX_NOTES 8
 
 typedef struct {
     float theta;

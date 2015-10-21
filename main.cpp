@@ -57,8 +57,8 @@ int moon_add(moon_base *mb, float radius, float theta, int note)
     int id;
     mb->nmoons++;
 
+    while(theta >= 2 * M_PI) theta -= 2 * M_PI;
     while(theta < 0) theta += 2 * M_PI;
-    while(theta > 2 * M_PI) theta -= 2 * M_PI;
 
     id = mb->nmoons - 1; 
     
@@ -67,7 +67,7 @@ int moon_add(moon_base *mb, float radius, float theta, int note)
     mb->moon[id].radius = radius;
     mb->moon[id].time = 0;
 
-    theta = abs(theta) / (2.0 * M_PI);
+    theta = fabs(theta) / (2.0 * M_PI);
     theta = floor(MAX_NOTES * theta);
     mb->moon[id].note= (int)theta;
     fprintf(stderr, "the note is %d!, theta is %g\n", mb->moon[id].note, theta);
@@ -83,8 +83,12 @@ int moon_init(moon_base *mb)
 
     mb->notes[0] = 62;
     mb->notes[1] = 64;
-    mb->notes[2] = 69;
-    mb->notes[3] = 73;
+    mb->notes[2] = 66;
+    mb->notes[3] = 69;
+    mb->notes[4] = 71;
+    mb->notes[6] = 74;
+    mb->notes[5] = 76;
+    mb->notes[7] = 78;
 
     //moon_add(mb, 1.24, 0.5, 2);
     //moon_add(mb, 1.765, 4, 1);

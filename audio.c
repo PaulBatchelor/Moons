@@ -184,7 +184,7 @@ int moon_sound_init(moon_base *mb)
     mb->pd.ud = mb;
     char *str = 
         //"'scale' '62 64 66 69 71 74 76 78' gen_vals "
-        "'scale' '62 64 66 69 73' gen_vals "
+        "'scale' '62 67 69 72 74 78 79' gen_vals "
         "0 f dup 0.5 1.1 delay 1000 butlp 0.2 * + dup dup 0.97 10000 revsc "
         "0.1 * swap 0.1 * "
         "rot dup rot + rot rot +"  

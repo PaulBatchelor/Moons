@@ -44,37 +44,55 @@ using namespace std;
 moon_base g_data;
 RtAudio audio;
 
+long g_width = 640;
+long g_height = 480;
+
+int moon_add(moon_base *mb, float radius, float theta, int note)
+{
+    if(mb->nmoons >= mb->max_moons) {
+        fprintf(stderr, "Warning: max number of moons created!");
+        return 0;
+    }
+
+    int id;
+    mb->nmoons++;
+
+    while(theta < 0) theta += 2 * M_PI;
+    while(theta > 2 * M_PI) theta -= 2 * M_PI;
+
+    id = mb->nmoons - 1; 
+    
+    mb->moon[id].theta = theta;
+    mb->moon[id].itheta = theta;
+    mb->moon[id].radius = radius;
+    mb->moon[id].time = 0;
+
+    theta = abs(theta) / (2.0 * M_PI);
+    theta = floor(MAX_NOTES * theta);
+    mb->moon[id].note= (int)theta;
+    fprintf(stderr, "the note is %d!, theta is %g\n", mb->moon[id].note, theta);
+
+    return 0;
+}
+
 int moon_init(moon_base *mb)
 {
     mb->speed = 10;
+    mb->max_moons = MAX_MOONS;
+    mb->nmoons = 0;
 
     mb->notes[0] = 62;
     mb->notes[1] = 64;
     mb->notes[2] = 69;
     mb->notes[3] = 73;
 
-    mb->moon[0].theta = 0.5;
-    mb->moon[0].itheta = 0.5;
-    mb->moon[0].radius = 1.024;
-    mb->moon[0].note = 2;
+    //moon_add(mb, 1.24, 0.5, 2);
+    //moon_add(mb, 1.765, 4, 1);
+    //moon_add(mb, 1, 0, 0);
+    //moon_add(mb, 2, 2, 0);
+    //moon_add(mb, 1.513, 0, 3);
     
-    mb->moon[1].theta = 4;
-    mb->moon[1].itheta = 4;
-    mb->moon[1].radius = 1.765;
-    mb->moon[1].note = 1;
-    
-    mb->moon[2].theta = 2;
-    mb->moon[2].itheta = 2;
-    mb->moon[2].radius = 0.86;
-    mb->moon[2].note = 0;
-    
-    mb->moon[3].theta = 0;
-    mb->moon[3].itheta = 0;
-    mb->moon[3].radius = 1.513;
-    mb->moon[3].note = 3;
-
-    return 0;
-}
+    return 0; }
 
 
 int callme( void * outputBuffer, void * inputBuffer, unsigned int numFrames,
@@ -188,8 +206,110 @@ void keyboardFunc( unsigned char key, int x, int y )
             moon_clean(&g_data);
             exit(1);
             break;
+        case 'u': 
+            if(g_data.nmoons > 0) g_data.nmoons--; 
+            break;
         default:
             break;
     }
+    glutPostRedisplay( );
+}
+
+void reshapeFunc( GLsizei w, GLsizei h )
+{
+    /* save the new window size */
+    g_width = w; g_height = h;
+    /* map the view port to the client area */
+    glViewport( 0, 0, w, h );
+    /* set the matrix mode to project */
+    glMatrixMode( GL_PROJECTION );
+    /* load the identity matrix */
+    glLoadIdentity( );
+    /* create the viewing frustum */
+    gluPerspective( 45.0, (GLfloat) w / (GLfloat) h, 1.0, 45.0 );
+    /* set the matrix mode to modelview */
+    glMatrixMode( GL_MODELVIEW );
+    /* load the identity matrix */
+    glLoadIdentity( );
+    /* position the view point */
+    gluLookAt( 0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f );
+}
+
+void initGfx()
+{
+    /* double buffer, use rgb color, enable depth buffer */
+    glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );
+    /* initialize the window size */
+    glutInitWindowSize( g_width, g_height );
+    /* set the window postion */
+    glutInitWindowPosition( 100, 100 );
+    /* create the window */
+    glutCreateWindow( "simple" );
+   
+    /* set the idle function - called when idle */
+    glutIdleFunc( idleFunc );
+    /* set the display function - called when redrawing */
+    glutDisplayFunc( displayFunc );
+    /* set the reshape function - called when client area changes */
+    glutReshapeFunc( reshapeFunc );
+    /* set the keyboard function - called on keyboard events */
+    glutKeyboardFunc( keyboardFunc );
+    /* set the mouse function - called on mouse stuff */
+    glutMouseFunc( mouseFunc );
+    
+    /* set clear color */
+    glClearColor( 13.0/255.0, 0, 20.0/255.0, 1 );
+    /* enable color material */
+    glEnable( GL_COLOR_MATERIAL );
+    /* enable depth test */
+    glEnable( GL_DEPTH_TEST );
+}
+
+
+void mouseFunc( int button, int state, int x, int y )
+{
+    GLfloat depth = 0;
+    GLdouble fX, fY, fZ;
+    GLdouble  model[16], proj[16];
+    GLint view[4];
+    float rad, theta;
+    if( button == GLUT_LEFT_BUTTON ) {
+        /* when left mouse button is down */
+        if( state == GLUT_DOWN ) {
+            glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+            glMatrixMode (GL_MODELVIEW);
+            glGetDoublev(GL_MODELVIEW_MATRIX, model);
+            glGetDoublev(GL_PROJECTION_MATRIX, proj);
+            glGetIntegerv(GL_VIEWPORT, view);
+            printf("depth: %g", depth);
+            gluUnProject(x, y, 0.8182, model, proj, view, &fX, &fY, &fZ);
+            rad = sqrt((x*x) + (y*y));
+            printf("x: %d, y: %d r: %g w: %d h: %d\n", x, y, rad, g_width, g_height);
+            fY *= -1; 
+            rad = sqrt((fX*fX) + (fY*fY));
+            theta = atan(fY / fX);
+            if(fX < 0 && fY < 0) theta -= M_PI;
+            else if(fX < 0 && fY > 0) theta += M_PI;
+
+            fprintf(stderr, "fX: %g fY: %g r: %g theta: %g\n", fX, fY, rad, theta);
+            moon_add(&g_data, rad, theta, 2);
+            glMatrixMode (GL_MODELVIEW);
+
+        }
+        else {
+
+        }
+    }
+    else if ( button == GLUT_RIGHT_BUTTON )
+    {
+        /* when right mouse button down */
+        if( state == GLUT_DOWN ) {
+        }
+        else {
+        }
+    }
+    else {
+    }
+    
     glutPostRedisplay( );
 }

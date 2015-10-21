@@ -5,15 +5,15 @@
 #include "base.h"
 #include "audio.h"
 
-typedef struct {
+typedef struct orbit_d {
     moon_circle *moon;
     sp_ftbl *ft;
     sp_fosc *osc;
     sp_tenv *env;
     sp_tenv *env_timbre;
     sp_metro *met;
-    float time;
-    float dur;
+    //float time;
+    //float dur;
 } orbit_d;
 
 static int orbit_create(moon_base *mb, orbit_d **orbptr, int n)
@@ -44,12 +44,11 @@ static int orbit_destroy(moon_base *mb, orbit_d **orbptr)
     return 0;
 }
 
-static int orbit_init(moon_base *mb, orbit_d *orb, moon_circle *moon)
+int orbit_init(moon_base *mb, orbit_d *orb, moon_circle *moon)
 {
     sp_gen_sine(mb->sp, orb->ft);
 
     sp_fosc_init(mb->sp, orb->osc, orb->ft);
-    orb->osc->freq = sp_midi2cps(mb->notes[moon->note] - 0.005);
     orb->osc->amp = 0.15;
     orb->osc->indx = 1.2;
     orb->osc->mod = 7;
@@ -67,8 +66,7 @@ static int orbit_init(moon_base *mb, orbit_d *orb, moon_circle *moon)
     orb->env_timbre->rel = 0.2;
     orb->env_timbre->hold = 0.01;
 
-    orb->time = 0;
-    orb->dur = mb->speed * moon->radius;
+    moon->time = 0;
     orb->moon = moon;
 
     return 0;
@@ -77,9 +75,12 @@ static int orbit_init(moon_base *mb, orbit_d *orb, moon_circle *moon)
 static SPFLOAT orbit_compute(moon_base *mb, orbit_d *orb)
 {
     SPFLOAT osc = 0, met = 0, env = 0, env_timbre = 0;
-    if(floor(orb->time) == 0) {
+    SPFLOAT dur = mb->speed * orb->moon->radius;
+    if(floor(orb->moon->time) == 0) {
         met = 1;
     }
+    
+    orb->osc->freq = sp_midi2cps(mb->notes[orb->moon->note]);
 
     sp_tenv_compute(mb->sp, orb->env, &met, &env);
     sp_tenv_compute(mb->sp, orb->env_timbre, &met, &env_timbre);
@@ -88,16 +89,17 @@ static SPFLOAT orbit_compute(moon_base *mb, orbit_d *orb)
     sp_fosc_compute(mb->sp, orb->osc, NULL, &osc);
    
     orb->moon->theta = orb->moon->itheta + 
-        ((float) orb->time / (orb->dur * mb->sp->sr)) * 
+        ((float) orb->moon->time / (dur * mb->sp->sr)) * 
         2 * M_PI;
-    orb->time++;
-    orb->time = fmod(orb->time, orb->dur * mb->sp->sr);
+    orb->moon->time++;
+    orb->moon->time = fmod(orb->moon->time, dur * mb->sp->sr);
    
     return osc * env;
 }
 
 static int orbits(sporth_stack *stack, void *ud) 
 {
+    int i;
     plumber_data *pd = ud;
     SPFLOAT out = 0;
     sporth_func_d *fd;
@@ -112,7 +114,7 @@ static int orbits(sporth_stack *stack, void *ud)
 #endif
 
             fd = pd->last->ud;
-            orbit_create(mb, &od, 4);
+            orbit_create(mb, &od, mb->max_moons);
 
             fd->ud = od; 
 
@@ -131,10 +133,9 @@ static int orbits(sporth_stack *stack, void *ud)
 
             fd = pd->last->ud;
             od  = fd->ud;
-            orbit_init(mb, &od[0], &mb->moon[0]);
-            orbit_init(mb, &od[1], &mb->moon[1]);
-            orbit_init(mb, &od[2], &mb->moon[2]);
-            orbit_init(mb, &od[3], &mb->moon[3]);
+            for(i = 0; i < mb->max_moons; i++) {
+                orbit_init(mb, &od[i], &mb->moon[i]);
+            }
             sporth_stack_push_float(stack, 0);
 
             break;
@@ -142,17 +143,16 @@ static int orbits(sporth_stack *stack, void *ud)
         case PLUMBER_COMPUTE:
 
             if(sporth_check_args(stack, "") != SPORTH_OK) {
-                fprintf(stderr,"Not enough arguments for bpscale\n");
+                fprintf(stderr,"Not enough arguments for mo000on\n");
                 stack->error++;
                 return PLUMBER_NOTOK;
             }
 
             fd = pd->last->ud;
             od  = fd->ud;
-            out = orbit_compute(mb, &od[0]);
-            out += orbit_compute(mb, &od[1]);
-            out += orbit_compute(mb, &od[2]);
-            out += orbit_compute(mb, &od[3]);
+            for(i = 0; i < mb->nmoons; i++) {
+                out += orbit_compute(mb, &od[i]);
+            }
 
             sporth_stack_push_float(stack, out);
             break;

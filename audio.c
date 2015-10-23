@@ -50,8 +50,8 @@ int orbit_init(moon_base *mb, orbit_d *orb, moon_circle *moon)
 
     sp_fosc_init(mb->sp, orb->osc, orb->ft);
     orb->osc->amp = 0.15;
-    orb->osc->indx = 1.2;
-    orb->osc->mod = 7;
+    orb->osc->indx = 4;
+    orb->osc->mod = 9;
 
     sp_metro_init(mb->sp, orb->met);
     orb->met->freq = 0.1;
@@ -62,9 +62,9 @@ int orbit_init(moon_base *mb, orbit_d *orb, moon_circle *moon)
     orb->env->hold = 0.01;
 
     sp_tenv_init(mb->sp, orb->env_timbre);
-    orb->env_timbre->atk = 0.02;
-    orb->env_timbre->rel = 0.2;
-    orb->env_timbre->hold = 0.01;
+    orb->env_timbre->atk = 0.001;
+    orb->env_timbre->rel = 0.1;
+    orb->env_timbre->hold = 0;
 
     moon->time = 0;
     orb->moon = moon;
@@ -78,9 +78,9 @@ static SPFLOAT orbit_compute(moon_base *mb, orbit_d *orb)
     SPFLOAT dur = mb->speed * orb->moon->radius;
     if(floor(orb->moon->time) == 0) {
         met = 1;
+        orb->osc->freq = sp_midi2cps(mb->scale->tbl[orb->moon->note]);
     }
     
-    orb->osc->freq = sp_midi2cps(mb->scale->tbl[orb->moon->note]);
 
     sp_tenv_compute(mb->sp, orb->env, &met, &env);
     sp_tenv_compute(mb->sp, orb->env_timbre, &met, &env_timbre);
@@ -190,8 +190,19 @@ int moon_sound_init(moon_base *mb)
     mb->pd.ud = mb;
     char *str = 
         "'scale' '62 67 69 72 74 78 79' gen_vals "
+        "'sine' 4096 gen_sine "
         "0 f dup 0.5 1.1 delay 1000 butlp 0.3 * + "
         "0 p 0.2 0.1 0.1 tenv 0.05 noise * + "
+
+        "0 'scale' tget 24 - mtof 0.3 1 1 3 fm "
+        "0.08 1 0.75 'sine' osc 0 1 scale * "
+        "1 'scale' tget 12 - mtof 0.1 1 1 1 fm "
+        "0.03 1 0.75 'sine' osc 0 1 scale * "
+        "2 'scale' tget 12 - mtof 0.1 1 1 1 fm "
+        "0.08 1 0.75 'sine' osc 0 1 scale * "
+        "+ + "
+        "0 0.6 0.1 randi * + "
+        
         "dup dup 0.97 10000 revsc "
         "0.2 * swap 0.2 * "
         "rot dup rot + rot rot +"  

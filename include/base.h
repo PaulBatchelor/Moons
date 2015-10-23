@@ -10,6 +10,10 @@ typedef struct {
     float radius;
     int note;
     float time;
+    float alpha;
+    float decay;
+    int decay_mode;
+    int *nmoons;
 } moon_circle;
 
 typedef struct {

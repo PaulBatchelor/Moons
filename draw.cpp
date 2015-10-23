@@ -31,9 +31,9 @@ extern "C" {
 
 float g_theta = 0;
 
-static void hex2float(int r, int g, int b) 
+static void hex2float(int r, int g, int b, float a) 
 {
-    glColor3f(r / 255.0, g / 255.0, b / 255.0);
+    glColor4f(r / 255.0, g / 255.0, b / 255.0, a);
 }
 
 void idleFunc( )
@@ -57,31 +57,31 @@ static int orbit_draw(moon_circle *moon)
     
     switch(moon->note)  {
         case 0:
-            hex2float(255, 255, 39);
+            hex2float(255, 255, 39, moon->alpha);
             break;
         case 1:
-            hex2float(255, 0, 77);
+            hex2float(255, 0, 77, moon->alpha);
             break;
         case 2:
-            hex2float(0, 231, 86);
+            hex2float(0, 231, 86, moon->alpha);
             break;
         case 3:
-            hex2float(41, 173, 255);
+            hex2float(41, 173, 255, moon->alpha);
             break;
         case 4:
-            hex2float(255, 163, 0);
+            hex2float(255, 163, 0, moon->alpha);
             break;
         case 5:
-            hex2float(255, 119, 168);
+            hex2float(255, 119, 168, moon->alpha);
             break;
         case 6:
-            hex2float(0, 135, 81);
+            hex2float(0, 135, 81, moon->alpha);
             break;
         case 7:
-            hex2float(131, 118, 156);
+            hex2float(131, 118, 156, moon->alpha);
             break;
         default:
-            hex2float(255, 255, 39);
+            hex2float(255, 255, 39, moon->alpha);
             break;
     }
 
@@ -102,14 +102,26 @@ static int orbit_draw(moon_circle *moon)
             glVertex3f(dash_X1, dash_Y1, z);
             glVertex3f(dash_X2, dash_Y2, z);
     glEnd();
+
+    if(moon->decay_mode == 0 && moon->alpha < 1) {
+        moon->alpha += moon->decay; 
+    }else if(moon->decay_mode == 1 && moon->alpha > 0) {
+        moon->alpha -= moon->decay;
+    }else if(moon->decay_mode == 1 && moon->alpha < 0) {
+        *moon->nmoons = *moon->nmoons - 1;
+	moon->decay_mode = 2;
+	printf("there are now %d moons\n", *moon->nmoons);
+    }
 }
 
 int moon_draw(moon_base *mb)
 {
     int i;
     /* clear the color and depth buffers */
+    glBlendFunc(GL_ONE, GL_ZERO);
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for(i = 0; i < mb->nmoons; i++) { 
         orbit_draw(&mb->moon[i]); 
     }

@@ -66,6 +66,10 @@ int moon_add(moon_base *mb, float radius, float theta, int note)
     mb->moon[id].itheta = theta;
     mb->moon[id].radius = radius;
     mb->moon[id].time = 0;
+    mb->moon[id].alpha = 0;
+    mb->moon[id].decay = 0.05;
+    mb->moon[id].decay_mode = 0;
+    mb->moon[id].nmoons = &mb->nmoons;
 
     theta = fabs(theta) / (2.0 * M_PI);
     theta = floor(mb->scale->size * theta);
@@ -197,7 +201,8 @@ void keyboardFunc( unsigned char key, int x, int y )
             exit(1);
             break;
         case 'u': 
-            if(g_data.nmoons > 0) g_data.nmoons--; 
+            //if(g_data.nmoons > 0) g_data.nmoons--; 
+            g_data.moon[g_data.nmoons - 1].decay_mode = 1;
             g_data.pd.p[0] = 1;
             g_data.undo = 1;
             break;
@@ -255,6 +260,7 @@ void initGfx()
     glEnable( GL_COLOR_MATERIAL );
     /* enable depth test */
     glEnable( GL_DEPTH_TEST );
+    glEnable( GL_BLEND );
 }
 
 

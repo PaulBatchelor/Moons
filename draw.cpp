@@ -36,9 +36,6 @@ static void hex2float(int r, int g, int b)
     glColor3f(r / 255.0, g / 255.0, b / 255.0);
 }
 
-
-
-
 void idleFunc( )
 {
     /* render the scene */

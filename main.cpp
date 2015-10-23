@@ -80,23 +80,9 @@ int moon_init(moon_base *mb)
     mb->speed = 10;
     mb->max_moons = MAX_MOONS;
     mb->nmoons = 0;
-
-    //mb->notes[0] = 62;
-    //mb->notes[1] = 64;
-    //mb->notes[2] = 66;
-    //mb->notes[3] = 69;
-    //mb->notes[4] = 71;
-    //mb->notes[6] = 74;
-    //mb->notes[5] = 76;
-    //mb->notes[7] = 78;
-
-    //moon_add(mb, 1.24, 0.5, 2);
-    //moon_add(mb, 1.765, 4, 1);
-    //moon_add(mb, 1, 0, 0);
-    //moon_add(mb, 2, 2, 0);
-    //moon_add(mb, 1.513, 0, 3);
-    
-    return 0; }
+    mb->undo = 0;    
+    return 0; 
+}
 
 
 int callme( void * outputBuffer, void * inputBuffer, unsigned int numFrames,
@@ -133,7 +119,6 @@ static void stop_audio()
 
 int main( int argc, char ** argv )
 {
-
     unsigned int bufferFrames = BUFSIZE;
     
     if( audio.getDeviceCount() < 1 )
@@ -167,7 +152,8 @@ int main( int argc, char ** argv )
     
    
     try {
-        audio.openStream( &oParams, &iParams, MY_FORMAT, MY_SRATE, &bufferFrames, &callme, &g_data, &options );
+        //audio.openStream( &oParams, &iParams, MY_FORMAT, MY_SRATE, &bufferFrames, &callme, &g_data, &options );
+        audio.openStream( &oParams, NULL, MY_FORMAT, MY_SRATE, &bufferFrames, &callme, &g_data, &options );
     }
     catch( RtError& e )
     {
@@ -212,6 +198,8 @@ void keyboardFunc( unsigned char key, int x, int y )
             break;
         case 'u': 
             if(g_data.nmoons > 0) g_data.nmoons--; 
+            g_data.pd.p[0] = 1;
+            g_data.undo = 1;
             break;
         default:
             break;

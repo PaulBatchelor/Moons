@@ -21,6 +21,7 @@ typedef struct {
     float speed;
     int nmoons;
     int max_moons;
+    int undo;
 } moon_base;
 
 int moon_init(moon_base *mb);

@@ -78,6 +78,10 @@ static SPFLOAT orbit_compute(moon_base *mb, orbit_d *orb)
     if(floor(orb->moon->time) == 0) {
         met = 1;
         orb->osc->freq = sp_midi2cps(mb->scale->tbl[orb->moon->note]);
+        fprintf(stderr,"adding a new ripple.");
+        ripple_add(mb, &mb->ripples, orb->moon->radius, orb->moon->theta);
+        rstack_add(&mb->rstack);
+        fprintf(stderr, "there are now %d ripples.\n", mb->rstack.size);
     }
     
 
@@ -229,3 +233,74 @@ int moon_sound_destroy(moon_base *mb)
     sp_destroy(&mb->sp);
     return 0;
 }
+
+/* TODO: perhaps merge this with the C++ counterpart somehow... */
+int ripple_add(moon_base *mb, moon_cluster *mc, float radius, float theta)
+{
+    if(mc->nmoons >= mc->max_moons) {
+        fprintf(stderr, "Warning: max number of moons created!");
+        return 0;
+    }
+
+    int id;
+    //mc->nmoons++;
+
+    id = rstack_get(&mb->rstack, mb->rstack.size); 
+
+    while(theta >= 2 * M_PI) theta -= 2 * M_PI;
+    while(theta < 0) theta += 2 * M_PI;
+    
+    mc->moon[id].theta = theta;
+    mc->moon[id].itheta = theta;
+    mc->moon[id].radius = radius;
+    mc->moon[id].time = 0;
+    /* alpha starts at full blast, then decays */
+    mc->moon[id].alpha = 1;
+    /* toggle visibility */
+    mc->moon[id].decay = 0.05;
+    mc->moon[id].decay_mode = 0;
+    mc->moon[id].nmoons = &mc->nmoons;
+    mc->moon[id].size = 0.07;
+
+    theta = fabs(theta) / (2.0 * M_PI);
+    /* this is the only reason why we need moon_base in this function */
+    theta = floor(mb->scale->size * theta);
+    mc->moon[id].note= (int)theta;
+    fprintf(stderr, "the note is %d!, theta is %g\n", 
+            mc->moon[id].note, theta);
+}
+int rstack_init(ripple_stack *rs)
+{
+    rs->max = MAX_RIPPLES;
+    rs->offset = 0;
+    rs->size = 0;
+    return 0;
+}
+
+int rstack_add(ripple_stack *rs)
+{
+    if(rs->size >= rs->max) {
+        fprintf(stderr, "Warning: rstack size at maximum (%d)\n", rs->max);
+    }
+    int pos = rs->offset + rs->size;
+    pos %= rs->max;
+    rs->size++;
+
+    return 0;
+}
+
+int rstack_get(ripple_stack *rs, int index)
+{
+    int pos = (rs->offset + index) % rs->max;
+    return pos;
+}
+
+int rstack_pop(ripple_stack *rs)
+{
+    if(rs->size <= 0) {
+        fprintf(stderr,"uh oh. looks like there is nothing to pop!\n");
+    }
+    rs->offset++;
+    rs->offset %= rs->max;
+    rs->size--;
+} 

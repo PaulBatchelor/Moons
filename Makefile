@@ -26,7 +26,7 @@ LIBS+=-Llibs -lsporth -lsoundpipe -lsndfile
 CFLAGS += -Iinclude 
 CXXFLAGS += -Iinclude 
 
-OBJ=main.o draw.o RtAudio.o audio.o
+OBJ=main.o draw.o RtAudio.o audio.o 
 
 default: moons
 

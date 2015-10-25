@@ -1,4 +1,4 @@
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -26,6 +26,12 @@ typedef struct {
 } moon_cluster;
 
 typedef struct {
+    int max;
+    int offset;
+    int size;
+} ripple_stack;
+
+typedef struct {
     sp_data *sp;
     sp_ftbl *scale;
     plumber_data pd;
@@ -35,11 +41,10 @@ typedef struct {
     //int nmoons;
     //int max_moons;
     moon_cluster satellites;
+    moon_cluster ripples;
+    ripple_stack rstack;
     int undo;
 
-    //moon_circle ripple[MAX_MOONS];
-    //int nripples;
-    //int max_ripples;
 } moon_base;
 
 int moon_init(moon_base *mb);
@@ -48,9 +53,17 @@ int moon_draw(moon_base *mb);
 int moon_cluster_create(moon_cluster *mc, unsigned int max_moons);
 int moon_cluster_destroy(moon_cluster *mc);
 
-int moon_add(moon_base *mb, float radius, float theta);
+int moon_add(moon_base *mb, moon_cluster *mc, float radius, float theta);
 
+/* TODO: merge moon_add and ripple_add*/
+int ripple_add(moon_base *mb, moon_cluster *mc, float radius, float theta);
 
-#ifdef _cplusplus
+int rstack_init(ripple_stack *rs);
+int rstack_add(ripple_stack *rs);
+int rstack_get(ripple_stack *rs, int index);
+int rstack_pop(ripple_stack *rs);
+
+#ifdef __cplusplus
 }
 #endif
+

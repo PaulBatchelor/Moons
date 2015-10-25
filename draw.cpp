@@ -42,6 +42,32 @@ void idleFunc( )
     glutPostRedisplay( );
 }
 
+static int ripple_draw(moon_base *mb, moon_circle *ripple) 
+{
+    int32_t i, npoints = 256;
+    float incr = 2 * M_PI / (npoints - 1);
+    float z = 0.0;
+    float theta = ripple->theta;
+    glColor4f(1.0, 1.0, 1.0, ripple->alpha);
+
+    glBegin(GL_TRIANGLE_FAN);
+        for(i = 0; i < npoints; i++) {
+            glVertex3f(ripple->size * cos(i * incr) + ripple->radius * cos(theta), 
+                    ripple->size * sin(i * incr) + ripple->radius * sin(theta), z);
+        }
+    glEnd();
+
+    ripple->alpha *= 0.94;
+
+    ripple->size *= 1.02;
+
+    if(ripple->alpha < 0.00001) {
+        rstack_pop(&mb->rstack);
+        fprintf(stderr, "ripple popped! there are now %d ripples.\n", mb->rstack.size);
+    }
+    return 0;
+}
+
 static int orbit_draw(moon_circle *moon) 
 {
     int32_t i, npoints = 256;
@@ -117,36 +143,37 @@ static int orbit_draw(moon_circle *moon)
     }
 }
 
-int moon_add(moon_base *mb, float radius, float theta)
+int moon_add(moon_base *mb, moon_cluster *mc, float radius, float theta)
 {
-    if(mb->satellites.nmoons >= mb->satellites.max_moons) {
+    if(mc->nmoons >= mc->max_moons) {
         fprintf(stderr, "Warning: max number of moons created!");
         return 0;
     }
 
     int id;
-    mb->satellites.nmoons++;
+    mc->nmoons++;
 
-    id = mb->satellites.nmoons - 1; 
+    id = mc->nmoons - 1; 
 
     while(theta >= 2 * M_PI) theta -= 2 * M_PI;
     while(theta < 0) theta += 2 * M_PI;
     
-    mb->satellites.moon[id].theta = theta;
-    mb->satellites.moon[id].itheta = theta;
-    mb->satellites.moon[id].radius = radius;
-    mb->satellites.moon[id].time = 0;
-    mb->satellites.moon[id].alpha = 0;
-    mb->satellites.moon[id].decay = 0.05;
-    mb->satellites.moon[id].decay_mode = 0;
-    mb->satellites.moon[id].nmoons = &mb->satellites.nmoons;
-    mb->satellites.moon[id].size = 0.07;
+    mc->moon[id].theta = theta;
+    mc->moon[id].itheta = theta;
+    mc->moon[id].radius = radius;
+    mc->moon[id].time = 0;
+    mc->moon[id].alpha = 0;
+    mc->moon[id].decay = 0.05;
+    mc->moon[id].decay_mode = 0;
+    mc->moon[id].nmoons = &mc->nmoons;
+    mc->moon[id].size = 0.07;
 
     theta = fabs(theta) / (2.0 * M_PI);
+    /* this is the only reason why we need moon_base in this function */
     theta = floor(mb->scale->size * theta);
-    mb->satellites.moon[id].note= (int)theta;
+    mc->moon[id].note= (int)theta;
     fprintf(stderr, "the note is %d!, theta is %g\n", 
-            mb->satellites.moon[id].note, theta);
+            mc->moon[id].note, theta);
 
     return 0;
 }
@@ -161,6 +188,10 @@ int moon_draw(moon_base *mb)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for(i = 0; i < mb->satellites.nmoons; i++) { 
         orbit_draw(&mb->satellites.moon[i]); 
+    }
+    for(i = mb->rstack.size; i > 0; i--) { 
+        ripple_draw(mb, 
+                &mb->ripples.moon[rstack_get(&mb->rstack, i - 1)]); 
     }
 
     glFlush( );

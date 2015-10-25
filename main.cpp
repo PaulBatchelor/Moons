@@ -50,9 +50,9 @@ long g_height = 480;
 int moon_init(moon_base *mb)
 {
     mb->speed = 10;
-    //mb->max_moons = MAX_MOONS;
-    //mb->nmoons = 0;
     moon_cluster_create(&mb->satellites, MAX_MOONS);
+    moon_cluster_create(&mb->ripples, MAX_RIPPLES);
+    rstack_init(&mb->rstack);
     mb->undo = 0;
     return 0; 
 }
@@ -174,6 +174,7 @@ int moon_clean(moon_base *mb)
     stop_audio();
     moon_sound_destroy(mb);
     moon_cluster_destroy(&mb->satellites);
+    moon_cluster_destroy(&mb->ripples);
     return 0;
 }
 
@@ -275,7 +276,7 @@ void mouseFunc( int button, int state, int x, int y )
             else if(fX < 0 && fY > 0) theta += M_PI;
 
             fprintf(stderr, "fX: %g fY: %g r: %g theta: %g\n", fX, fY, rad, theta);
-            moon_add(&g_data, rad, theta);
+            moon_add(&g_data, &g_data.satellites, rad, theta);
             glMatrixMode (GL_MODELVIEW);
 
         }

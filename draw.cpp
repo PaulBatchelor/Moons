@@ -85,19 +85,22 @@ static int orbit_draw(moon_circle *moon)
             break;
     }
 
+    /* draw orbit path */
     glBegin(GL_LINE_STRIP);
         for(i = 0; i < npoints; i++) {
             glVertex3f(moon->radius * cos(i * incr), moon->radius * sin(i * incr), z);
         }
     glEnd();
-    
+   
+    /* draw moon */
     glBegin(GL_TRIANGLE_FAN);
         for(i = 0; i < npoints; i++) {
-            glVertex3f(0.07 * cos(i * incr) + moon->radius * cos(theta), 
-                    0.07 * sin(i * incr) + moon->radius * sin(theta), z);
+            glVertex3f(moon->size * cos(i * incr) + moon->radius * cos(theta), 
+                    moon->size * sin(i * incr) + moon->radius * sin(theta), z);
         }
     glEnd();
-    
+   
+    /* draw starting point notch */ 
     glBegin(GL_LINE_STRIP);
             glVertex3f(dash_X1, dash_Y1, z);
             glVertex3f(dash_X2, dash_Y2, z);
@@ -114,6 +117,40 @@ static int orbit_draw(moon_circle *moon)
     }
 }
 
+int moon_add(moon_base *mb, float radius, float theta)
+{
+    if(mb->satellites.nmoons >= mb->satellites.max_moons) {
+        fprintf(stderr, "Warning: max number of moons created!");
+        return 0;
+    }
+
+    int id;
+    mb->satellites.nmoons++;
+
+    id = mb->satellites.nmoons - 1; 
+
+    while(theta >= 2 * M_PI) theta -= 2 * M_PI;
+    while(theta < 0) theta += 2 * M_PI;
+    
+    mb->satellites.moon[id].theta = theta;
+    mb->satellites.moon[id].itheta = theta;
+    mb->satellites.moon[id].radius = radius;
+    mb->satellites.moon[id].time = 0;
+    mb->satellites.moon[id].alpha = 0;
+    mb->satellites.moon[id].decay = 0.05;
+    mb->satellites.moon[id].decay_mode = 0;
+    mb->satellites.moon[id].nmoons = &mb->satellites.nmoons;
+    mb->satellites.moon[id].size = 0.07;
+
+    theta = fabs(theta) / (2.0 * M_PI);
+    theta = floor(mb->scale->size * theta);
+    mb->satellites.moon[id].note= (int)theta;
+    fprintf(stderr, "the note is %d!, theta is %g\n", 
+            mb->satellites.moon[id].note, theta);
+
+    return 0;
+}
+
 int moon_draw(moon_base *mb)
 {
     int i;
@@ -122,8 +159,8 @@ int moon_draw(moon_base *mb)
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    for(i = 0; i < mb->nmoons; i++) { 
-        orbit_draw(&mb->moon[i]); 
+    for(i = 0; i < mb->satellites.nmoons; i++) { 
+        orbit_draw(&mb->satellites.moon[i]); 
     }
 
     glFlush( );

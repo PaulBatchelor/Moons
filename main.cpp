@@ -47,45 +47,28 @@ RtAudio audio;
 long g_width = 640;
 long g_height = 480;
 
-int moon_add(moon_base *mb, float radius, float theta, int note)
-{
-    if(mb->nmoons >= mb->max_moons) {
-        fprintf(stderr, "Warning: max number of moons created!");
-        return 0;
-    }
-
-    int id;
-    mb->nmoons++;
-
-    while(theta >= 2 * M_PI) theta -= 2 * M_PI;
-    while(theta < 0) theta += 2 * M_PI;
-
-    id = mb->nmoons - 1; 
-    
-    mb->moon[id].theta = theta;
-    mb->moon[id].itheta = theta;
-    mb->moon[id].radius = radius;
-    mb->moon[id].time = 0;
-    mb->moon[id].alpha = 0;
-    mb->moon[id].decay = 0.05;
-    mb->moon[id].decay_mode = 0;
-    mb->moon[id].nmoons = &mb->nmoons;
-
-    theta = fabs(theta) / (2.0 * M_PI);
-    theta = floor(mb->scale->size * theta);
-    mb->moon[id].note= (int)theta;
-    fprintf(stderr, "the note is %d!, theta is %g\n", mb->moon[id].note, theta);
-
-    return 0;
-}
-
 int moon_init(moon_base *mb)
 {
     mb->speed = 10;
-    mb->max_moons = MAX_MOONS;
-    mb->nmoons = 0;
-    mb->undo = 0;    
+    //mb->max_moons = MAX_MOONS;
+    //mb->nmoons = 0;
+    moon_cluster_create(&mb->satellites, MAX_MOONS);
+    mb->undo = 0;
     return 0; 
+}
+
+int moon_cluster_create(moon_cluster *mc, unsigned int max_moons)
+{
+    mc->moon = (moon_circle *)malloc(sizeof(moon_circle) * max_moons);
+    mc->nmoons = 0;
+    mc->max_moons = max_moons;
+    return 0;
+} 
+
+int moon_cluster_destroy(moon_cluster *mc)
+{
+    free(mc->moon);
+    return 0;
 }
 
 
@@ -190,6 +173,7 @@ int moon_clean(moon_base *mb)
 {
     stop_audio();
     moon_sound_destroy(mb);
+    moon_cluster_destroy(&mb->satellites);
     return 0;
 }
 
@@ -201,10 +185,11 @@ void keyboardFunc( unsigned char key, int x, int y )
             exit(1);
             break;
         case 'u': 
-            //if(g_data.nmoons > 0) g_data.nmoons--; 
-            g_data.moon[g_data.nmoons - 1].decay_mode = 1;
-            g_data.pd.p[0] = 1;
-            g_data.undo = 1;
+            if(g_data.satellites.nmoons > 0){
+                g_data.satellites.moon[g_data.satellites.nmoons - 1].decay_mode = 1;
+                g_data.pd.p[0] = 1;
+                g_data.undo = 1;
+            }
             break;
         default:
             break;
@@ -290,7 +275,7 @@ void mouseFunc( int button, int state, int x, int y )
             else if(fX < 0 && fY > 0) theta += M_PI;
 
             fprintf(stderr, "fX: %g fY: %g r: %g theta: %g\n", fX, fY, rad, theta);
-            moon_add(&g_data, rad, theta, 2);
+            moon_add(&g_data, rad, theta);
             glMatrixMode (GL_MODELVIEW);
 
         }

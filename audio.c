@@ -40,7 +40,6 @@ static int orbit_destroy(moon_base *mb, orbit_d **orbptr)
     sp_tenv_destroy(&orb->env);
     sp_tenv_destroy(&orb->env_timbre);
     free(orb);
-
     return 0;
 }
 
@@ -114,7 +113,7 @@ static int orbits(sporth_stack *stack, void *ud)
 #endif
 
             fd = pd->last->ud;
-            orbit_create(mb, &od, mb->max_moons);
+            orbit_create(mb, &od, mb->satellites.max_moons);
 
             fd->ud = od; 
 
@@ -133,8 +132,8 @@ static int orbits(sporth_stack *stack, void *ud)
 
             fd = pd->last->ud;
             od  = fd->ud;
-            for(i = 0; i < mb->max_moons; i++) {
-                orbit_init(mb, &od[i], &mb->moon[i]);
+            for(i = 0; i < mb->satellites.max_moons; i++) {
+                orbit_init(mb, &od[i], &mb->satellites.moon[i]);
             }
             sporth_stack_push_float(stack, 0);
 
@@ -150,7 +149,7 @@ static int orbits(sporth_stack *stack, void *ud)
 
             fd = pd->last->ud;
             od  = fd->ud;
-            for(i = 0; i < mb->nmoons; i++) {
+            for(i = 0; i < mb->satellites.nmoons; i++) {
                 out += orbit_compute(mb, &od[i]);
             }
 

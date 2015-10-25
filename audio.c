@@ -83,24 +83,24 @@ static SPFLOAT orbit_compute(moon_base *mb, orbit_d *orb)
         rstack_add(&mb->rstack);
         fprintf(stderr, "there are now %d ripples.\n", mb->rstack.size);
     }
-    
+
 
     sp_tenv_compute(mb->sp, orb->env, &met, &env);
     sp_tenv_compute(mb->sp, orb->env_timbre, &met, &env_timbre);
 
     orb->osc->indx = 0.01 + env_timbre * 0.5;
     sp_fosc_compute(mb->sp, orb->osc, NULL, &osc);
-   
-    orb->moon->theta = orb->moon->itheta + 
-        ((float) orb->moon->time / (dur * mb->sp->sr)) * 
+
+    orb->moon->theta = orb->moon->itheta +
+        ((float) orb->moon->time / (dur * mb->sp->sr)) *
         2 * M_PI;
     orb->moon->time++;
     orb->moon->time = fmod(orb->moon->time, dur * mb->sp->sr);
-   
+
     return osc * env;
 }
 
-static int orbits(sporth_stack *stack, void *ud) 
+static int orbits(sporth_stack *stack, void *ud)
 {
     int i;
     plumber_data *pd = ud;
@@ -119,7 +119,7 @@ static int orbits(sporth_stack *stack, void *ud)
             fd = pd->last->ud;
             orbit_create(mb, &od, mb->satellites.max_moons);
 
-            fd->ud = od; 
+            fd->ud = od;
 
             break;
         case PLUMBER_INIT:
@@ -165,7 +165,7 @@ static int orbits(sporth_stack *stack, void *ud)
                 pd->p[0] = 0;
                 mb->undo = 0;
             }
-            
+
             if(mb->fade == 1) {
                 mb->fade++;
                 pd->p[1] = 1;
@@ -192,7 +192,7 @@ static int orbits(sporth_stack *stack, void *ud)
     return PLUMBER_OK;
 }
 
-int moon_sound_init(moon_base *mb) 
+int moon_sound_init(moon_base *mb)
 {
     sp_createn(&mb->sp, 2);
     mb->sp->sr = mb->sr;
@@ -201,7 +201,7 @@ int moon_sound_init(moon_base *mb)
     mb->pd.f[0] = orbits;
     mb->pd.sp = mb->sp;
     mb->pd.ud = mb;
-    char *str = 
+    char *str =
         "'scale' '62 67 69 74 76 78 85' gen_vals "
         "'sine' 4096 gen_sine "
         "0 f dup 0.5 1.1 delay 1500 butlp 0.3 * + "
@@ -209,16 +209,16 @@ int moon_sound_init(moon_base *mb)
 
         "0 'scale' tget 24 - 0.07 port mtof 0.3 1 1 3 fm "
         "0.08 1 0.75 'sine' osc 0 1 scale * "
-        "1 'scale' tget 12 - 0.07 port mtof 0.1 1 1 1 fm "
+        "1 'scale' tget 12 - 0.07 port mtof 0.1 1 1 3 fm "
         "0.03 1 0.75 'sine' osc 0 1 scale * "
-        "2 'scale' tget 12 - 0.07 port mtof 0.1 1 1 1 fm "
+        "2 'scale' tget 12 - 0.07 port mtof 0.1 1 1 3 fm "
         "0.08 1 0.75 'sine' osc 0 1 scale * "
         "+ + "
         "0 0.6 0.1 randi * + "
         "1 p 1 1 tenv2 * "
         "dup dup 0.97 10000 revsc "
         "0.15 * swap 0.15 * "
-        "rot dup rot + rot rot +"  
+        "rot dup rot + rot rot +"
         ;
 
     plumber_parse_string(&mb->pd, str);
@@ -255,11 +255,11 @@ int ripple_add(moon_base *mb, moon_cluster *mc, float radius, float theta)
     int id;
     //mc->nmoons++;
 
-    id = rstack_get(&mb->rstack, mb->rstack.size); 
+    id = rstack_get(&mb->rstack, mb->rstack.size);
 
     while(theta >= 2 * M_PI) theta -= 2 * M_PI;
     while(theta < 0) theta += 2 * M_PI;
-    
+
     mc->moon[id].theta = theta;
     mc->moon[id].itheta = theta;
     mc->moon[id].radius = radius;
@@ -276,7 +276,7 @@ int ripple_add(moon_base *mb, moon_cluster *mc, float radius, float theta)
     /* this is the only reason why we need moon_base in this function */
     theta = floor(mb->scale->size * theta);
     mc->moon[id].note= (int)theta;
-    fprintf(stderr, "the note is %d!, theta is %g\n", 
+    fprintf(stderr, "the note is %d!, theta is %g\n",
             mc->moon[id].note, theta);
 }
 int rstack_init(ripple_stack *rs)
@@ -313,4 +313,4 @@ int rstack_pop(ripple_stack *rs)
     rs->offset++;
     rs->offset %= rs->max;
     rs->size--;
-} 
+}

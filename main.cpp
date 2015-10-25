@@ -54,6 +54,7 @@ int moon_init(moon_base *mb)
     moon_cluster_create(&mb->ripples, MAX_RIPPLES);
     rstack_init(&mb->rstack);
     mb->undo = 0;
+    mb->fade = 1;
     return 0; 
 }
 
@@ -156,7 +157,6 @@ static void set_scale(moon_base *mb, int scale_num)
             break;
         default:
             break;
-            
     }
 }
 
@@ -247,6 +247,11 @@ void keyboardFunc( unsigned char key, int x, int y )
                 g_data.pd.p[0] = 1;
                 g_data.undo = 1;
             }
+            break;
+        case 32: 
+            fprintf(stderr, "Toggling!\n");
+            //g_data.pd.p[1] = 1;
+            g_data.fade = 1;
             break;
         case '1':
             set_scale(&g_data, 1);

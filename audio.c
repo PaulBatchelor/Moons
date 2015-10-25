@@ -158,12 +158,22 @@ static int orbits(sporth_stack *stack, void *ud)
             }
 
             sporth_stack_push_float(stack, out);
-	    if(mb->undo == 1) {
-                mb->undo++;
+
+            if(mb->undo == 1) {
+                    mb->undo++;
             } else if(mb->undo == 2) {
                 pd->p[0] = 0;
                 mb->undo = 0;
             }
+            
+            if(mb->fade == 1) {
+                mb->fade++;
+                pd->p[1] = 1;
+            } else if(mb->fade == 2) {
+                pd->p[1] = 0;
+                mb->fade = 0;
+            }
+
             break;
 
         case PLUMBER_DESTROY:
@@ -205,7 +215,7 @@ int moon_sound_init(moon_base *mb)
         "0.08 1 0.75 'sine' osc 0 1 scale * "
         "+ + "
         "0 0.6 0.1 randi * + "
-        
+        "1 p 1 1 tenv2 * "
         "dup dup 0.97 10000 revsc "
         "0.15 * swap 0.15 * "
         "rot dup rot + rot rot +"  

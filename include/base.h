@@ -44,7 +44,7 @@ typedef struct {
     moon_cluster ripples;
     ripple_stack rstack;
     int undo;
-
+    int fade;
 } moon_base;
 
 int moon_init(moon_base *mb);

@@ -104,6 +104,62 @@ static void stop_audio()
 
 }
 
+static void set_scale(moon_base *mb, int scale_num) 
+{
+    SPFLOAT *scale = mb->scale->tbl;
+    fprintf(stderr, "Switching to scale %d\n", scale_num);
+    switch(scale_num) {
+        case 1:
+            scale[0] = 62;
+            scale[1] = 67;
+            scale[2] = 69;
+            scale[3] = 74;
+            scale[4] = 76;
+            scale[5] = 78;
+            scale[6] = 85;
+            break;
+        case 2:
+            scale[0] = 60;
+            scale[1] = 65;
+            scale[2] = 67;
+            scale[3] = 72;
+            scale[4] = 74;
+            scale[5] = 76;
+            scale[6] = 81;
+            break;
+        case 3:
+            scale[0] = 62;
+            scale[1] = 65;
+            scale[2] = 69;
+            scale[3] = 72;
+            scale[4] = 76;
+            scale[5] = 79;
+            scale[6] = 81;
+            break;
+        case 4:
+            scale[0] = 58;
+            scale[1] = 65;
+            scale[2] = 72;
+            scale[3] = 74;
+            scale[4] = 81;
+            scale[5] = 82;
+            scale[6] = 89;
+            break;
+        case 5:
+            scale[0] = 63;
+            scale[1] = 70;
+            scale[2] = 74;
+            scale[3] = 75;
+            scale[4] = 79;
+            scale[5] = 82;
+            scale[6] = 84;
+            break;
+        default:
+            break;
+            
+    }
+}
+
 int main( int argc, char ** argv )
 {
     unsigned int bufferFrames = BUFSIZE;
@@ -191,6 +247,21 @@ void keyboardFunc( unsigned char key, int x, int y )
                 g_data.pd.p[0] = 1;
                 g_data.undo = 1;
             }
+            break;
+        case '1':
+            set_scale(&g_data, 1);
+            break;
+        case '2':
+            set_scale(&g_data, 2);
+            break;
+        case '3':
+            set_scale(&g_data, 3);
+            break;
+        case '4':
+            set_scale(&g_data, 4);
+            break;
+        case '5':
+            set_scale(&g_data, 5);
             break;
         default:
             break;
@@ -297,3 +368,4 @@ void mouseFunc( int button, int state, int x, int y )
     
     glutPostRedisplay( );
 }
+

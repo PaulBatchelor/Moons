@@ -192,22 +192,22 @@ int moon_sound_init(moon_base *mb)
     mb->pd.sp = mb->sp;
     mb->pd.ud = mb;
     char *str = 
-        "'scale' '62 67 69 72 74 78 79' gen_vals "
+        "'scale' '62 67 69 74 76 78 85' gen_vals "
         "'sine' 4096 gen_sine "
-        "0 f dup 0.5 1.1 delay 1000 butlp 0.3 * + "
-        "0 p 0.2 0.1 0.1 tenv 0.05 noise * + "
+        "0 f dup 0.5 1.1 delay 1500 butlp 0.3 * + "
+        "0 p 0.1 0.1 0.2 tenv 0.05 noise * 2000 butlp + "
 
-        "0 'scale' tget 24 - mtof 0.3 1 1 3 fm "
+        "0 'scale' tget 24 - 0.07 port mtof 0.3 1 1 3 fm "
         "0.08 1 0.75 'sine' osc 0 1 scale * "
-        "1 'scale' tget 12 - mtof 0.1 1 1 1 fm "
+        "1 'scale' tget 12 - 0.07 port mtof 0.1 1 1 1 fm "
         "0.03 1 0.75 'sine' osc 0 1 scale * "
-        "2 'scale' tget 12 - mtof 0.1 1 1 1 fm "
+        "2 'scale' tget 12 - 0.07 port mtof 0.1 1 1 1 fm "
         "0.08 1 0.75 'sine' osc 0 1 scale * "
         "+ + "
         "0 0.6 0.1 randi * + "
         
         "dup dup 0.97 10000 revsc "
-        "0.2 * swap 0.2 * "
+        "0.15 * swap 0.15 * "
         "rot dup rot + rot rot +"  
         ;
 

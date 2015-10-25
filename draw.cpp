@@ -57,7 +57,7 @@ static int ripple_draw(moon_base *mb, moon_circle *ripple)
         }
     glEnd();
 
-    ripple->alpha *= 0.94;
+    ripple->alpha *= 0.95;
 
     ripple->size *= 1.02;
 

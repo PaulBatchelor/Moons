@@ -266,8 +266,8 @@ int ripple_add(moon_base *mb, moon_cluster *mc, float radius, float theta)
     mc->moon[id].time = 0;
     /* alpha starts at full blast, then decays */
     mc->moon[id].alpha = 1;
-    /* toggle visibility */
-    mc->moon[id].decay = 0.05;
+	/* this value will need to be tweaked depending on how fast the framerate of your system is*/
+    mc->moon[id].decay = RIPPLE_DECAY;
     mc->moon[id].decay_mode = 0;
     mc->moon[id].nmoons = &mc->nmoons;
     mc->moon[id].size = 0.07;

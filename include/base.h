@@ -5,8 +5,11 @@ extern "C" {
 #define MAX_MOONS 8
 #define MAX_RIPPLES 10 
 /* tweak this value smaller value == faster decay must be >1*/
-#define RIPPLE_DECAY 0.98;
-#define RIPPLE_GROWTH 1.01;
+//#define RIPPLE_DECAY 0.98;
+//#define RIPPLE_GROWTH 1.01;
+
+#define RIPPLE_DECAY 0.99;
+#define RIPPLE_GROWTH 1.004;
 
 typedef struct {
     float theta;

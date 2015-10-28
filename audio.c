@@ -205,7 +205,7 @@ int moon_sound_init(moon_base *mb)
         "'scale' '62 67 69 74 76 78 85' gen_vals "
         "'sine' 4096 gen_sine "
         "0 f dup 0.5 1.1 delay 1500 butlp 0.3 * + "
-        "0 p 0.1 0.1 0.2 tenv 0.05 noise * 2000 butlp + "
+        "0 p 0.1 0.1 0.2 tenv 0.05 noise * 4000 butlp + "
 
         "0 'scale' tget 24 - 0.07 port mtof 0.3 1 1 3 fm "
         "0.08 1 0.75 'sine' osc 0 1 scale * "

@@ -173,7 +173,7 @@ static int orbits(sporth_stack *stack, void *ud)
                 pd->p[1] = 0;
                 mb->fade = 0;
             }
-
+            ripple_decay(&mb->ripples, &mb->rstack);
             break;
 
         case PLUMBER_DESTROY:

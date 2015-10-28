@@ -58,14 +58,6 @@ static int ripple_draw(moon_base *mb, moon_circle *ripple)
     glEnd();
 
 
-    ripple->alpha *= RIPPLE_DECAY;
-
-    ripple->size *= RIPPLE_GROWTH;
-
-    if(ripple->alpha < 0.00001) {
-        rstack_pop(&mb->rstack);
-        fprintf(stderr, "ripple popped! there are now %d ripples.\n", mb->rstack.size);
-    }
     return 0;
 }
 
@@ -176,6 +168,23 @@ int moon_add(moon_base *mb, moon_cluster *mc, float radius, float theta)
     fprintf(stderr, "the note is %d!, theta is %g\n", 
             mc->moon[id].note, theta);
 
+    return 0;
+}
+
+int ripple_decay(moon_cluster *mc, ripple_stack *rs)
+{
+    int i;
+    moon_circle *ripple;
+    for(i = rs->size; i > 0; i--) { 
+        ripple = &mc->moon[rstack_get(rs, i -1)];
+        ripple->alpha -= 1 / (MY_SRATE * RIPPLE_DECAY);
+        ripple->size += 1.0 * RIPPLE_GROWTH / MY_SRATE; 
+
+        if(ripple->alpha < 0.00001) {
+            rstack_pop(rs);
+            fprintf(stderr, "ripple popped! there are now %d ripples.\n", rs->size);
+        }
+    }
     return 0;
 }
 

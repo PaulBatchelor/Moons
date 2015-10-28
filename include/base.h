@@ -8,8 +8,8 @@ extern "C" {
 //#define RIPPLE_DECAY 0.98;
 //#define RIPPLE_GROWTH 1.01;
 
-#define RIPPLE_DECAY 0.99;
-#define RIPPLE_GROWTH 1.004;
+#define RIPPLE_DECAY 0.7 
+#define RIPPLE_GROWTH 0.6
 
 typedef struct {
     float theta;
@@ -63,6 +63,7 @@ int moon_add(moon_base *mb, moon_cluster *mc, float radius, float theta);
 
 /* TODO: merge moon_add and ripple_add*/
 int ripple_add(moon_base *mb, moon_cluster *mc, float radius, float theta);
+int ripple_decay(moon_cluster *mc, ripple_stack *rs);
 
 int rstack_init(ripple_stack *rs);
 int rstack_add(ripple_stack *rs);

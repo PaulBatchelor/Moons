@@ -5,6 +5,7 @@ system ?= $(shell uname -s)
 ifeq ($(system), Darwin)
 CXX=clang++
 CXXFLAGS=-D__MACOSX_CORE__ -c
+CFLAGS=-D__MACOSX_CORE__ -c
 LIBS=-framework CoreAudio -framework CoreMIDI -framework CoreFoundation \
 	-framework IOKit -framework Carbon  -framework OpenGL \
 	-framework GLUT -framework Foundation \

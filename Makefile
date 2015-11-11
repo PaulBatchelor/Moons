@@ -1,4 +1,6 @@
+#ifndef system
 system ?= $(shell uname -s)
+#endif
 
 ifeq ($(system), Darwin)
 CXX=clang++

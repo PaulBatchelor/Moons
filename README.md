@@ -59,5 +59,3 @@ from, each color coded.
 'space' - starts/stops the sound (the reverb still stays on)
 
 '1-4' - change the scale/chord
-
-{{FOOTER}}

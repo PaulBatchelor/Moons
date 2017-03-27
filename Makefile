@@ -18,14 +18,14 @@ CXXFLAGS=-D__UNIX_JACK__ -c
 LIBS= -ljack -lGL -lGLU -lglut -lstdc++ -lm -lpthread
 endif
 
-SR=96000
+SR=44100
 
 ifdef SR
 CFLAGS += -DMY_SRATE=$(SR)
 CXXFLAGS += -DMY_SRATE=$(SR)
 endif
 
-LIBS+=-Llibs -lsporth -lsoundpipe -lsndfile
+LIBS+=-Llibs -lsporth -lsoundpipe -lsndfile -ldl
 CFLAGS += -Iinclude 
 CXXFLAGS += -Iinclude 
 

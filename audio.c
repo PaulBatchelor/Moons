@@ -100,12 +100,10 @@ static SPFLOAT orbit_compute(moon_base *mb, orbit_d *orb)
     return osc * env;
 }
 
-static int orbits(sporth_stack *stack, void *ud)
+static int orbits(plumber_data *pd, sporth_stack *stack, void **ud)
 {
     int i;
-    plumber_data *pd = ud;
     SPFLOAT out = 0;
-    sporth_func_d *fd;
     orbit_d *od;
     moon_base *mb = pd->ud;
 
@@ -116,10 +114,10 @@ static int orbits(sporth_stack *stack, void *ud)
             fprintf(stderr, "Default user function in create mode.\n");
 #endif
 
-            fd = pd->last->ud;
             orbit_create(mb, &od, mb->satellites.max_moons);
 
-            fd->ud = od;
+            *ud = od;
+            sporth_stack_push_float(stack, 0);
 
             break;
         case PLUMBER_INIT:
@@ -128,14 +126,7 @@ static int orbits(sporth_stack *stack, void *ud)
             fprintf(stderr, "Default user function in init mode.\n");
 #endif
 
-            if(sporth_check_args(stack, "") != SPORTH_OK) {
-                fprintf(stderr,"Not enough arguments for bpscale\n");
-                stack->error++;
-                return PLUMBER_NOTOK;
-            }
-
-            fd = pd->last->ud;
-            od  = fd->ud;
+            od  = *ud;
             for(i = 0; i < mb->satellites.max_moons; i++) {
                 orbit_init(mb, &od[i], &mb->satellites.moon[i]);
             }
@@ -144,15 +135,7 @@ static int orbits(sporth_stack *stack, void *ud)
             break;
 
         case PLUMBER_COMPUTE:
-
-            if(sporth_check_args(stack, "") != SPORTH_OK) {
-                fprintf(stderr,"Not enough arguments for mo000on\n");
-                stack->error++;
-                return PLUMBER_NOTOK;
-            }
-
-            fd = pd->last->ud;
-            od  = fd->ud;
+            od  = *ud;
             for(i = 0; i < mb->satellites.nmoons; i++) {
                 out += orbit_compute(mb, &od[i]);
             }
@@ -177,11 +160,7 @@ static int orbits(sporth_stack *stack, void *ud)
             break;
 
         case PLUMBER_DESTROY:
-#ifdef DEBUG_MODE
-            fprintf(stderr, "Default user function in destroy mode.\n");
-#endif
-            fd = pd->last->ud;
-            od = fd->ud;
+            od = *ud;
             orbit_destroy(mb, &od);
             break;
 
@@ -198,13 +177,13 @@ int moon_sound_init(moon_base *mb)
     mb->sp->sr = mb->sr;
     plumber_register(&mb->pd);
     plumber_init(&mb->pd);
-    mb->pd.f[0] = orbits;
     mb->pd.sp = mb->sp;
     mb->pd.ud = mb;
+    plumber_ftmap_add_function(&mb->pd, "orbits", orbits, NULL);
     char *str =
         "'scale' '62 67 69 74 76 78 85' gen_vals "
         "'sine' 4096 gen_sine "
-        "0 f dup 0.5 1.1 delay 1500 butlp 0.3 * + "
+        "_orbits fe dup 0.5 1.1 delay 1500 butlp 0.3 * + "
         "0 p 0.1 0.1 0.2 tenv 0.05 noise * 4000 butlp + "
 
         "0 'scale' tget 24 - 0.07 port mtof 0.3 1 1 3 fm "
